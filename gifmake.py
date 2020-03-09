@@ -46,13 +46,13 @@ gifmake_args.add_argument(
 gifmake_args.add_argument(
     "-v",
     "--verbose",
-    help="Verbose mode. Prints extra information, and ",
+    help="Verbose mode. Prints extra information. Not mutually exclusive with -q, which suppresses ffmpeg output.",
     action="store_true",
 )
 gifmake_args.add_argument(
     "-q",
     "--quiet",
-    help="Quiet mode. Passes -hide_banner -loglevel warning to ffmpeg.",
+    help="Quiet mode. Passes -hide_banner -loglevel warning to ffmpeg. Not mutually exclusive with -v.",
     action="store_true",
 )
 gifmake_args.add_argument("input")
