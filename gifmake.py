@@ -26,14 +26,13 @@ stop_group.add_argument("-to", help="Read up to this timestamp.")
 stop_group.add_argument("-t", help="Read for this duration.")
 filter_group = gifmake_args.add_mutually_exclusive_group()
 filter_group.add_argument(
-    "--filters",
-    "-f",
-    help="An ffmpeg filter graph.",
-    default="scale=-1:320:flags=lanczos",
+    "--width",
+    "-w",
+    help="Scale to %(metavar)s px wide. Implied if -f is not set, with default %(default)s.",
+    default=320,
+    metavar="W",
 )
-filter_group.add_argument(
-    "--width", "-w", help="Shortcut to scale to %(metavar)s px wide.", metavar="W"
-)
+filter_group.add_argument("--filters", "-f", help="An ffmpeg filter graph.")
 gifmake_args.add_argument(
     "--rate", "-r", help="Frame rate (default: %(default)s).", default=15
 )
@@ -79,6 +78,9 @@ if args.to:
 else:
     ffmpeg_args += ["-t", args.t]
 ffmpeg_args += ["-i", args.input]
+
+if args.width:
+    args.filters = "scale=%s:-1:flags=lanczos" % args.width
 
 if args.palette_filters:
     palette_filtergraph = "%s, palettegen" % args.palette_filters
