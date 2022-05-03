@@ -87,13 +87,13 @@ else:
     palette_filtergraph = "%s, palettegen" % args.filters
 gif_filtergraph = "%s [x]; [x][1:v] paletteuse" % args.filters
 
+palette_cmd = (
+    ["ffmpeg"] + ffmpeg_args + ["-lavfi", palette_filtergraph, "-y", str(palette_path)]
+)
 if not palette_path.exists() or args.new_palette:
     logger("Generating palette at %s" % palette_path)
-    palette_gen_status = subprocess.call(
-        ["ffmpeg"]
-        + ffmpeg_args
-        + ["-lavfi", palette_filtergraph, "-y", str(palette_path)]
-    )
+    logger(" ".join(palette_cmd))
+    palette_gen_status = subprocess.call(palette_cmd)
     if not palette_gen_status:
         logger("Successfully generated palette.")
     else:
@@ -105,11 +105,13 @@ else:
     )
 
 logger("Encoding gif to %s" % args.output)
-encode_status = subprocess.call(
+encode_cmd = (
     ["ffmpeg"]
     + ffmpeg_args
     + ["-i", str(palette_path)]
     + ["-lavfi", gif_filtergraph, "-y", args.output]
 )
+logger(" ".join(encode_cmd))
+encode_status = subprocess.call(encode_cmd)
 if not encode_status:
     logger("Encode successful.")
