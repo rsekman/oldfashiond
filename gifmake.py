@@ -71,12 +71,15 @@ ffmpeg_args = []
 ffmpeg_args += ["-stats"]
 if args.quiet:
     ffmpeg_args += ["-hide_banner", "-loglevel", "warning"]
-ffmpeg_args += ["-ss", args.ss, "-r", str(args.rate)]
+ffmpeg_args += ["-ss", args.ss]
 if args.to:
     ffmpeg_args += ["-to", args.to]
 else:
     ffmpeg_args += ["-t", args.t]
 ffmpeg_args += ["-i", args.input]
+
+# -r needs to be an output argument to not mess up seeking!
+ffmpeg_output_args = ["-r", str(args.rate)]
 
 if args.width:
     args.filters = "scale=%s:-1:flags=lanczos" % args.width
@@ -109,7 +112,9 @@ encode_cmd = (
     ["ffmpeg"]
     + ffmpeg_args
     + ["-i", str(palette_path)]
-    + ["-lavfi", gif_filtergraph, "-y", args.output]
+    + ["-lavfi", gif_filtergraph]
+    + ffmpeg_output_args
+    + ["-y", args.output]
 )
 logger(" ".join(encode_cmd))
 encode_status = subprocess.call(encode_cmd)
