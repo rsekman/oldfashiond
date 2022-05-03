@@ -11,12 +11,11 @@ try:
         mtime = datetime.fromtimestamp(mtime)
         return humanfriendly.format_timespan(now - mtime) + " ago"
 
-
 except ModuleNotFoundError:
 
     def format_mtime(mtime):
         # Format datetime according to current locale
-        return datetime.fromtimestamp().strftime("%c%")
+        return datetime.fromtimestamp(mtime).strftime("%c%")
 
 
 gifmake_args = argparse.ArgumentParser()
