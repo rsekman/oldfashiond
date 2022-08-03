@@ -32,8 +32,8 @@ sub_group.add_argument(
 )
 sub_group.add_argument(
     "--sub-style",
-    help="Use the $(metavar) ASS style for subtitles.",
-    default="Fontsize=24",
+    help="Use the %(metavar)s ASS style for subtitles. Default: %(default)s.",
+    default="Fontsize=24,Outline=2",
     metavar="STYLE",
 )
 filter_group = gifmake_args.add_mutually_exclusive_group()
@@ -116,7 +116,6 @@ gif_filters = [
     "[sub_out][1:v] paletteuse",
 ]
 gif_filtergraph = "; ".join(gif_filters)
-print(gif_filtergraph)
 
 palette_cmd = (
     ["ffmpeg"] + ffmpeg_args + ["-lavfi", palette_filtergraph, "-y", str(palette_path)]
