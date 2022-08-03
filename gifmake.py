@@ -23,6 +23,19 @@ gifmake_args.add_argument("-ss", help="Start timestamp.", required=True)
 stop_group = gifmake_args.add_mutually_exclusive_group(required=True)
 stop_group.add_argument("-to", help="Read up to this timestamp.")
 stop_group.add_argument("-t", help="Read for this duration.")
+sub_group = gifmake_args.add_argument_group("Subtitle options")
+sub_group.add_argument(
+    "--sub-file",
+    help="Hardsub the gif using subtitles from %(metavar)s. Requires an ffmpeg compiled with libass.",
+    default=None,
+    metavar="SUBFILE",
+)
+sub_group.add_argument(
+    "--sub-style",
+    help="Use the $(metavar) ASS style for subtitles.",
+    default="Fontsize=24",
+    metavar="STYLE",
+)
 filter_group = gifmake_args.add_mutually_exclusive_group()
 filter_group.add_argument(
     "--width",
@@ -71,7 +84,7 @@ ffmpeg_args = []
 ffmpeg_args += ["-stats"]
 if args.quiet:
     ffmpeg_args += ["-hide_banner", "-loglevel", "warning"]
-ffmpeg_args += ["-ss", args.ss]
+ffmpeg_args += ["-ss", args.ss, "-copyts"]
 if args.to:
     ffmpeg_args += ["-to", args.to]
 else:
@@ -80,15 +93,30 @@ ffmpeg_args += ["-i", args.input]
 
 # -r needs to be an output argument to not mess up seeking!
 ffmpeg_output_args = ["-r", str(args.rate)]
+if args.sub_file is not None:
+    # to sync subtitles we have to -copyts and seek twice, see
+    # https://trac.ffmpeg.org/wiki/HowToBurnSubtitlesIntoVideo
+    ffmpeg_output_args += ["-ss", args.ss]
 
 if args.width:
-    args.filters = "scale=%s:-1:flags=lanczos" % args.width
+    args.filters = "[0:v] scale=%s:-1:flags=lanczos" % args.width
 
 if args.palette_filters:
     palette_filtergraph = "%s, palettegen" % args.palette_filters
 else:
     palette_filtergraph = "%s, palettegen" % args.filters
-gif_filtergraph = "%s [x]; [x][1:v] paletteuse" % args.filters
+
+if args.sub_file is not None:
+    sub_filter = f"subtitles={args.sub_file}:force_style='{args.sub_style}'"
+else:
+    sub_filter = "copy"
+gif_filters = [
+    f"{args.filters} [vf_out]",
+    f"[vf_out] {sub_filter} [sub_out]",
+    "[sub_out][1:v] paletteuse",
+]
+gif_filtergraph = "; ".join(gif_filters)
+print(gif_filtergraph)
 
 palette_cmd = (
     ["ffmpeg"] + ffmpeg_args + ["-lavfi", palette_filtergraph, "-y", str(palette_path)]
@@ -112,8 +140,8 @@ encode_cmd = (
     ["ffmpeg"]
     + ffmpeg_args
     + ["-i", str(palette_path)]
-    + ["-lavfi", gif_filtergraph]
     + ffmpeg_output_args
+    + ["-lavfi", gif_filtergraph]
     + ["-y", args.output]
 )
 logger(" ".join(encode_cmd))
