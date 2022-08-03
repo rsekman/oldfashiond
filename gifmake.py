@@ -52,7 +52,7 @@ def determine_sub_format(fname):
             return True
 
     fmt_tests = OrderedDict([(SubFormat.ASS, is_ass), (SubFormat.SRT, is_srt)])
-    with open(fname, encoding='utf-8-sig') as f:
+    with open(fname, encoding="utf-8-sig") as f:
         for (fmt, test) in fmt_tests.items():
             if test(f):
                 return fmt
@@ -130,11 +130,16 @@ stop_group.add_argument(
     type=int,
     metavar="N",
 )
-sub_group = gifmake_args.add_argument_group("Subtitle options")
+sub_group = gifmake_args.add_argument_group(
+    "Subtitle options",
+    """
+    Options for hardsubbing the gif.
+    Hardsubbing uses the subtitles and ass filters and requires an ffmpeg compiled with --enable-libass.
+    """,
+)
 sub_group.add_argument(
     "--sub-file",
-    help="""Hardsub the gif using subtitles from %(metavar)s.
-    Requires an ffmpeg compiled with --enable-libass.
+    help="""Load subtitles from %(metavar)s.
     """,
     default=None,
     metavar="SUBFILE",
@@ -153,8 +158,9 @@ sub_group.add_argument(
 sub_group.add_argument(
     "--sub-lead-in",
     help="""
-    Allow for %(metavar)s ms of lead-in. Increase this if there are extraneous frames at the beginning of the gif
-    (default: %(default)s)
+    Allow for %(metavar)s ms of lead-in. Increase this if there are extraneous
+    frames at the beginning of the gif.
+    Default: %(default)s.
     """,
     default=80,
     type=int,
