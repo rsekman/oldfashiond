@@ -170,7 +170,7 @@ filter_group = gifmake_args.add_mutually_exclusive_group()
 filter_group.add_argument(
     "--width",
     "-w",
-    help="Scale to %(metavar)s px wide. Implied if -f is not set, with default %(default)s.",
+    help="Scale to %(metavar)s px wide. Implied if -f is not set. Default: %(default)s.",
     default=320,
     metavar="W",
 )
@@ -181,7 +181,7 @@ filter_group.add_argument(
     help=f"An ffmpeg filter graph.  Mutually exclusive with -w. The filtergraph should output to the link {vf_out}; this is appended if not already present.",
 )
 gifmake_args.add_argument(
-    "--rate", "-r", help="Frame rate (default: %(default)s).", default=15
+    "--rate", "-r", help="Output frame rate. Default: %(default)s.", default=15
 )
 gifmake_args.add_argument("--palette-filters", "-pf", help="Palette filters.")
 gifmake_args.add_argument(
