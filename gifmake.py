@@ -19,10 +19,12 @@ except ModuleNotFoundError:
 
 
 gifmake_args = argparse.ArgumentParser()
-gifmake_args.add_argument("-ss", help="Start timestamp.", required=True)
+gifmake_args.add_argument(
+    "-ss", help="Start reading at %(metavar)s.", required=True, metavar="SS"
+)
 stop_group = gifmake_args.add_mutually_exclusive_group(required=True)
-stop_group.add_argument("-to", help="Read up to this timestamp.")
-stop_group.add_argument("-t", help="Read for this duration.")
+stop_group.add_argument("-to", help="Read up to %(metavar)s.", metavar="TO")
+stop_group.add_argument("-t", help="Read for %(metavar)s.", metavar="T")
 sub_group = gifmake_args.add_argument_group("Subtitle options")
 sub_group.add_argument(
     "--sub-file",
@@ -44,7 +46,12 @@ filter_group.add_argument(
     default=320,
     metavar="W",
 )
-filter_group.add_argument("--filters", "-f", help="An ffmpeg filter graph.")
+vf_out = "[vf_out]"
+filter_group.add_argument(
+    "--filters",
+    "-f",
+    help=f"An ffmpeg filter graph.  Mutually exclusive with -w. The filtergraph should output to the link {vf_out}; this is appended if not already present.",
+)
 gifmake_args.add_argument(
     "--rate", "-r", help="Frame rate (default: %(default)s).", default=15
 )
@@ -110,9 +117,13 @@ if args.sub_file is not None:
     sub_filter = f"subtitles={args.sub_file}:force_style='{args.sub_style}'"
 else:
     sub_filter = "copy"
+
+if not args.filters.endswith(vf_out):
+    args.filters += vf_out
+
 gif_filters = [
-    f"{args.filters} [vf_out]",
-    f"[vf_out] {sub_filter} [sub_out]",
+    f"{args.filters}",
+    f"{vf_out} {sub_filter} [sub_out]",
     "[sub_out][1:v] paletteuse",
 ]
 gif_filtergraph = "; ".join(gif_filters)
