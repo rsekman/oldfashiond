@@ -123,7 +123,7 @@ palette_cmd = (
 )
 if not palette_path.exists() or args.new_palette:
     logger("Generating palette at %s" % palette_path)
-    logger(" ".join(palette_cmd))
+    logger(subprocess.list2cmdline(palette_cmd))
     palette_gen_status = subprocess.call(palette_cmd)
     if not palette_gen_status:
         logger("Successfully generated palette.")
@@ -144,7 +144,7 @@ encode_cmd = (
     + ["-lavfi", gif_filtergraph]
     + ["-y", args.output]
 )
-logger(" ".join(encode_cmd))
+logger(subprocess.list2cmdline(encode_cmd))
 encode_status = subprocess.call(encode_cmd)
 if not encode_status:
     logger("Encode successful.")
