@@ -36,9 +36,15 @@ if (args.sub_line_start or args.sub_line_end) and not args.sub_file:
     sys.exit("error: passing --sub-line-start or --sub-line-end requires --sub-file")
 
 if args.verbose:
-    logger = print
+
+    def logger(msg):
+        print(msg)
+
 else:
-    logger = lambda x: None
+
+    def logger(msg):
+        pass
+
 
 palette_path = Path(gettempdir()) / Path(args.input).with_suffix(".palette.png").name
 

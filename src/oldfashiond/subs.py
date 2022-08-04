@@ -26,7 +26,7 @@ def determine_sub_format(fname):
             from ass import parse
 
             parse(f)
-        except (ImportError, ValueError) as e:
+        except (ImportError, ValueError):
             return False
         else:
             return True
@@ -70,6 +70,6 @@ def get_nth_sub_line(fname, n):
             return (line.start, line.end)
         except IndexError:
             raise IndexError("Could not find line {n} in {fname}.")
-        except (ImportError, ValueError) as e:
+        except (ImportError, ValueError):
             pass
         raise ValueError(f"{fname} is not a supported subtitle file.")
