@@ -48,7 +48,6 @@ def determine_sub_format(fname):
 
             parse(f)
         except (ImportError, ValueError) as e:
-            print(e)
             return False
         else:
             return True
@@ -107,7 +106,7 @@ time_group = gifmake_args.add_argument_group(
     To find the index of a line in an SRT file, run fgrep --before-context 3
     "search string" subs.srt. To find the index of a line in an ASS file, open
     it in Aegisub.
-"""
+""",
 )
 start_group = time_group.add_mutually_exclusive_group(required=True)
 start_group.add_argument("-ss", help="Start reading at %(metavar)s.", metavar="SS")
