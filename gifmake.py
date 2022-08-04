@@ -4,6 +4,8 @@ import argparse, subprocess, pathlib, tempfile, sys
 from enum import Enum
 from collections import OrderedDict
 from datetime import datetime, timedelta
+from tempfile import mkstemp
+from os import close, unlink
 
 try:
     import humanfriendly
@@ -141,12 +143,29 @@ sub_group = gifmake_args.add_argument_group(
     Hardsubbing uses the subtitles and ass filters and requires an ffmpeg compiled with --enable-libass.
     """,
 )
-sub_group.add_argument(
+sub_source_group = sub_group.add_mutually_exclusive_group()
+sub_source_group.add_argument(
     "--sub-file",
     help="""Load subtitles from %(metavar)s.
     """,
     default=None,
     metavar="SUBFILE",
+)
+sub_source_group.add_argument(
+    "--sub-index",
+    help="""
+    Hardsub the gif using the embedded subtitles with index %(metavar)s.
+    Not compatible with subtitle line-based seeking; -ss and (-t | -to) must be
+    used.
+    (
+        To regain this functionality, demux embedded subtitles:
+        ffmpeg -ss BEGIN -i INPUT -to END -copyts -map 0:N subs.srt.
+        Passing -ss and -to saves time by not demuxing the entire file, which
+        could mean reading several GiB from disk.
+    )
+    """,
+    default=None,
+    metavar="INDEX",
 )
 sub_group.add_argument(
     "--no-sub",
@@ -226,8 +245,9 @@ palette_path = pathlib.Path(tempfile.gettempdir()) / pathlib.Path(
 
 ffmpeg_args = []
 ffmpeg_args += ["-stats"]
+quiet_args = ["-hide_banner", "-loglevel", "warning"]
 if args.quiet:
-    ffmpeg_args += ["-hide_banner", "-loglevel", "warning"]
+    ffmpeg_args += quiet_args
 
 if args.ss:
     start_time = args.ss
@@ -238,12 +258,13 @@ elif args.sub_line_start:
 
 ffmpeg_args += ["-ss", start_time, "-copyts"]
 if args.to:
-    ffmpeg_args += ["-to", args.to]
+    stop_args = ["-to", args.to]
 elif args.t:
-    ffmpeg_args += ["-t", args.t]
+    stop_args = ["-t", args.t]
 elif args.sub_line_end:
     times = get_nth_sub_line(args.sub_file, args.sub_line_end)
-    ffmpeg_args += ["-to", str(times[1])]
+    stop_args = ["-to", str(times[1])]
+ffmpeg_args += stop_args
 ffmpeg_args += ["-i", args.input]
 
 # -r needs to be an output argument to not mess up seeking!
@@ -267,6 +288,28 @@ if args.sub_file is not None:
         sub_filter = f"subtitles={args.sub_file}:force_style='{args.sub_style}'"
     elif sub_fmt == SubFormat.ASS:
         sub_filter = f"ass={args.sub_file}"
+elif args.sub_index is not None:
+    # Naively using filename='{args.input}':si={args.sub_index} in the
+    # filtergraph can be extremely slow as this makes ffmpeg demux the entire
+    # input file, when we only need a small portion of it.
+    (sub_tmp_f, sub_tmp_fname) = mkstemp(suffix=".mkv")
+    close(sub_tmp_f)
+    demux_cmd = ["ffmpeg", "-stats"]
+    if args.quiet:
+        demux_cmd += quiet_args
+    demux_cmd += ["-ss", start_time, "-i", args.input]
+    demux_cmd += stop_args
+    demux_cmd += [
+        "-map",
+        f"0:{args.sub_index}",
+        "-map",
+        "0:t",
+        "-c",
+        "copy",
+        "-y",
+        sub_tmp_fname,
+    ]
+    sub_filter = f"subtitles={sub_tmp_fname}:si=0"
 else:
     sub_filter = "copy"
 
@@ -297,6 +340,11 @@ else:
         % (palette_path, format_mtime(palette_path.stat().st_mtime))
     )
 
+if args.sub_index is not None:
+    logger("Demuxing subtitles")
+    logger(subprocess.list2cmdline(demux_cmd))
+    subprocess.call(demux_cmd)
+
 logger("Encoding gif to %s" % args.output)
 encode_cmd = (
     ["ffmpeg"]
@@ -308,5 +356,11 @@ encode_cmd = (
 )
 logger(subprocess.list2cmdline(encode_cmd))
 encode_status = subprocess.call(encode_cmd)
+if args.sub_index is not None:
+    logger("Deleting demuxed subtitles.")
+    try:
+        unlink(sub_tmp_fname)
+    except Exception:
+        pass
 if not encode_status:
     logger("Encode successful.")
