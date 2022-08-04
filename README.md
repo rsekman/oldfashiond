@@ -13,3 +13,8 @@ with support for common arguments. Run with `-h` for details.
 ## Dependencies: ##
  * Python 3
  * `ffmpeg` with support for the `palettegen` and `paletteuse` filters (>= 2.6)
+
+### Optional dependencies ###
+  * `humanfriendly`: for some nicer log messages
+  * an `ffmpeg` compiled with `--enable-libass`: to hardsub gifs
+  * `ass` or `srt`: to automatically determine start and stop times from an ASS or SRT subtitle file, respectively
