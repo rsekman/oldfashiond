@@ -1,6 +1,10 @@
 #!/usr/bin/python
 
-import argparse, subprocess, pathlib, tempfile, sys
+import argparse
+import subprocess
+import pathlib
+import tempfile
+import sys
 from enum import Enum
 from collections import OrderedDict
 from datetime import datetime, timedelta
