@@ -96,18 +96,22 @@ def get_nth_sub_line(fname, n):
 
 
 gifmake_args = argparse.ArgumentParser()
-time_group = gifmake_args.add_argument_group("Timing options")
-start_group = time_group.add_mutually_exclusive_group(required=True)
-start_group.add_argument("-ss", help="Start reading at %(metavar)s.", metavar="SS")
-sub_dep_doc = """
+time_group = gifmake_args.add_argument_group(
+    "Timing options",
+    """
+    %(prog)s accepts -ss, -t, -to with the same semantics as ffmpeg.
+    It can also determine these from a range of lines in a subtitle file.
     This requires parsing the subtitle file and depends on the srt and ass libraries for SRT and ASS files, respectively.
     To find the index of a line in an SRT file, run fgrep --before-context 3
     "search string" subs.srt. To find the index of a line in an ASS file, open
     it in Aegisub.
 """
+)
+start_group = time_group.add_mutually_exclusive_group(required=True)
+start_group.add_argument("-ss", help="Start reading at %(metavar)s.", metavar="SS")
 start_group.add_argument(
     "--sub-line-start",
-    help=f"Start reading at the beginning of the N:th line of the subtitle file. {sub_dep_doc}",
+    help=f"Start reading at the beginning of the N:th line of the subtitle file.",
     type=int,
     default=None,
     metavar="N",
@@ -115,17 +119,17 @@ start_group.add_argument(
 stop_group = time_group.add_mutually_exclusive_group(required=True)
 stop_group.add_argument(
     "-to",
-    help="Read up to %(metavar)s. Mutually exclusive with -t and --sub-line-end.",
+    help="Read up to %(metavar)s.",
     metavar="TO",
 )
 stop_group.add_argument(
     "-t",
-    help="Read for %(metavar)s. Mutually exclusive with -to and --sub-line-end.",
+    help="Read for %(metavar)s ",
     metavar="T",
 )
 stop_group.add_argument(
     "--sub-line-end",
-    help=f"Stop reading from at the end of the N:th subtitle line. Mutually exclusive with -t and -to. {sub_dep_doc}",
+    help=f"Stop reading from at the end of the N:th subtitle line.",
     default=None,
     type=int,
     metavar="N",
