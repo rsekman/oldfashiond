@@ -1,15 +1,15 @@
 #!/usr/bin/python
 
-import argparse
-import subprocess
-import pathlib
-import tempfile
 import sys
-from enum import Enum
+import subprocess
+
+from argparse import ArgumentParser
 from collections import OrderedDict
 from datetime import datetime, timedelta
-from tempfile import mkstemp
+from enum import Enum
 from os import close, unlink
+from pathlib import Path
+from tempfile import mkstemp, gettempdir
 
 try:
     import humanfriendly
@@ -100,8 +100,8 @@ def get_nth_sub_line(fname, n):
         raise ValueError(f"{fname} is not a supported subtitle file.")
 
 
-gifmake_args = argparse.ArgumentParser()
-time_group = gifmake_args.add_argument_group(
+argparser = ArgumentParser()
+time_group = argparser.add_argument_group(
     "Timing options",
     """
     %(prog)s accepts -ss, -t, -to with the same semantics as ffmpeg.
@@ -139,7 +139,7 @@ stop_group.add_argument(
     type=int,
     metavar="N",
 )
-sub_group = gifmake_args.add_argument_group(
+sub_group = argparser.add_argument_group(
     "Subtitle options",
     """
     Options for hardsubbing the gif.
@@ -192,7 +192,7 @@ sub_group.add_argument(
     type=int,
     metavar="T",
 )
-filter_group = gifmake_args.add_mutually_exclusive_group()
+filter_group = argparser.add_mutually_exclusive_group()
 filter_group.add_argument(
     "--width",
     "-w",
@@ -206,17 +206,17 @@ filter_group.add_argument(
     "-f",
     help=f"An ffmpeg filter graph.  Mutually exclusive with -w. The filtergraph should output to the link {vf_out}; this is appended if not already present.",
 )
-gifmake_args.add_argument(
+argparser.add_argument(
     "--rate", "-r", help="Output frame rate. Default: %(default)s.", default=15
 )
-gifmake_args.add_argument("--palette-filters", "-pf", help="Palette filters.")
-gifmake_args.add_argument(
+argparser.add_argument("--palette-filters", "-pf", help="Palette filters.")
+argparser.add_argument(
     "--new-palette",
     "-pn",
     help="Force regeneration of the palette.",
     action="store_true",
 )
-log_group = gifmake_args.add_argument_group("Logging options")
+log_group = argparser.add_argument_group("Logging options")
 log_group.add_argument(
     "-v",
     "--verbose",
@@ -229,10 +229,10 @@ log_group.add_argument(
     help="Quiet mode. Passes -hide_banner -loglevel warning to ffmpeg. Not mutually exclusive with -v.",
     action="store_true",
 )
-gifmake_args.add_argument("input")
-gifmake_args.add_argument("output")
+argparser.add_argument("input")
+argparser.add_argument("output")
 
-args = gifmake_args.parse_args()
+args = argparser.parse_args()
 
 if (args.sub_line_start or args.sub_line_end) and not args.sub_file:
     sys.exit("error: passing --sub-line-start or --sub-line-end requires --sub-file")
@@ -242,9 +242,7 @@ if args.verbose:
 else:
     logger = lambda x: None
 
-palette_path = pathlib.Path(tempfile.gettempdir()) / pathlib.Path(
-    args.input
-).with_suffix(".palette.png")
+palette_path = Path(gettempdir()) / Path(args.input).with_suffix(".palette.png").name
 
 ffmpeg_args = []
 ffmpeg_args += ["-stats"]
