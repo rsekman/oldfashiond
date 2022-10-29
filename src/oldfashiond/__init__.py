@@ -100,13 +100,15 @@ def main():
         demux_cmd = ["ffmpeg", "-stats"]
         if args.quiet:
             demux_cmd += quiet_args
-        demux_cmd += ["-ss", start_time, "-i", args.input]
+        demux_cmd += ["-ss", start_time]
         demux_cmd += stop_args
+        demux_cmd += ["-i", args.input]
         demux_cmd += [
+            "-copyts",
             "-map",
             f"0:{args.sub_index}",
             "-map",
-            "0:t",
+            "0:t?",
             "-c",
             "copy",
             "-y",
