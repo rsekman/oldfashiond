@@ -10,6 +10,17 @@ Essentially a convenience wrapper around the following calls,
 
 with support for common arguments. Run with `-h` for details.
 
+## Filter sequence ##
+
+`oldfashiond` runs three filter stages in the following order
+    1. user-defined filters: an arbitrary `ffmpeg` filtergraph passed with `--filters`
+    2. scaling: to the width passed with `--width`
+        Skipped (replaced with the identify filter) if the value is non-positive.
+    3. subtitles: as appropriate for any subtitle options passed
+
+1 and 3 are the identity filter (`copy`) if the corresponding options are not
+present.
+
 ## Name ##
 
 Gifs are an old-fashioned format and go on tumblr, an old-fashioned website; and Old fashion**e**d, the cocktail, is served in a tumbl**e**r.
