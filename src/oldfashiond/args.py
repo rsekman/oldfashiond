@@ -105,9 +105,11 @@ filter_group.add_argument(
     "--width",
     "-w",
     help="""
-    Scale to %(metavar)s px wide. Implied if -f is not set. Default: %(default)s.
+    Scale to %(metavar)s px wide. Default: %(default)s.
+    Pass any non-positive value to skip scaling.
     """,
     default=320,
+    type=int,
     metavar="W",
 )
 vf_out = "[vf_out]"

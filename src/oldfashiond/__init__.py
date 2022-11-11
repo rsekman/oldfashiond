@@ -78,7 +78,11 @@ def main():
         ffmpeg_output_args += ["-ss", start_time]
 
     scale_out = "[scale_out]"
-    scale_filter = f"{vf_out} scale={args.width}:-1:flags=lanczos {scale_out}"
+    if args.width > 0:
+        scale_filter = f"scale={args.width}:-1:flags=lanczos"
+    else:
+        scale_filter = "copy"
+    scale_filter = f"{vf_out} {scale_filter} {scale_out}"
 
     if args.palette_filters:
         palette_filtergraph = "%s, palettegen" % args.palette_filters
