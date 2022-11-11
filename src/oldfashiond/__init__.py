@@ -131,7 +131,7 @@ def main():
     palette_cmd = (
         ["ffmpeg"]
         + ffmpeg_args
-        + ["-lavfi", palette_filtergraph, "-y", str(palette_path)]
+        + ["-lavfi", palette_filtergraph, "-update", "1", "-y", str(palette_path)]
     )
     if not palette_path.exists() or args.new_palette:
         logger("Generating palette at %s" % palette_path)
