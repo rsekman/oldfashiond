@@ -100,7 +100,7 @@ sub_group.add_argument(
     type=int,
     metavar="T",
 )
-filter_group = argparser.add_mutually_exclusive_group()
+filter_group = argparser.add_argument_group()
 filter_group.add_argument(
     "--width",
     "-w",
@@ -115,9 +115,10 @@ filter_group.add_argument(
     "--filters",
     "-f",
     help=f"""
-    An ffmpeg filter graph.  Mutually exclusive with -w. The filtergraph should
+    An ffmpeg filter graph. The filtergraph should
     output to the link {vf_out}; this is appended if not already present.
     """,
+    default=f"copy"
 )
 argparser.add_argument(
     "--rate", "-r", help="Output frame rate. Default: %(default)s.", default=15

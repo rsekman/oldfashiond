@@ -77,8 +77,8 @@ def main():
         # https://trac.ffmpeg.org/wiki/HowToBurnSubtitlesIntoVideo
         ffmpeg_output_args += ["-ss", start_time]
 
-    if args.width:
-        args.filters = "[0:v] scale=%s:-1:flags=lanczos" % args.width
+    scale_out = "[scale_out]"
+    scale_filter = f"{vf_out} scale={args.width}:-1:flags=lanczos {scale_out}"
 
     if args.palette_filters:
         palette_filtergraph = "%s, palettegen" % args.palette_filters
@@ -122,8 +122,9 @@ def main():
         args.filters += vf_out
 
     gif_filters = [
-        f"{args.filters}",
-        f"{vf_out} {sub_filter} [sub_out]",
+        args.filters,
+        scale_filter,
+        f"{scale_out} {sub_filter} [sub_out]",
         "[sub_out][1:v] paletteuse",
     ]
     gif_filtergraph = "; ".join(gif_filters)
